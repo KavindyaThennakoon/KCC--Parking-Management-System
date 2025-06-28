@@ -1,0 +1,133 @@
+import java.util.*;
+import java.time.*;
+
+class Vehicle {
+    String vehicleNumber;
+    String vehicleType;
+    LocalDateTime entryTime;
+
+    Vehicle(String vehicleNumber, String vehicleType) {
+        this.vehicleNumber = vehicleNumber;
+        this.vehicleType = vehicleType;
+        this.entryTime = LocalDateTime.now();
+    }
+}
+
+public class KCCParkingManagement {
+    static HashMap<String, Vehicle> parkingLot = new HashMap<>();
+    static Scanner scanner = new Scanner(System.in);
+
+    public static void main(String[] args) {
+        int choice;
+
+        do {
+            System.out.println("\n===== KCC Parking Management System =====");
+            System.out.println("1. Vehicle Entry");
+            System.out.println("2. Vehicle Exit");
+            System.out.println("3. View Parked Vehicles");
+            System.out.println("4. Exit");
+            System.out.print("Enter your choice: ");
+            choice = scanner.nextInt();
+            scanner.nextLine(); 
+
+            switch (choice) {
+                case 1:
+                    vehicleEntry();
+                    break;
+                case 2:
+                    vehicleExit();
+                    break;
+                case 3:
+                    viewParkedVehicles();
+                    break;
+                case 4:
+                    System.out.println("Exiting... Thank you for using KCC Parking System!");
+                    break;
+                default:
+                    System.out.println("Invalid choice! Please try again.");
+            }
+        } while (choice != 4);
+    }
+
+    // Vehicle Entry
+    static void vehicleEntry() {
+        System.out.print("Enter Vehicle Number: ");
+        String number = scanner.nextLine();
+
+        if (parkingLot.containsKey(number)) {
+            System.out.println("Vehicle is already parked.");
+            return;
+        }
+
+        System.out.print("Enter Vehicle Type (Car/Bike/Van): ");
+        String type = scanner.nextLine();
+
+        Vehicle v = new Vehicle(number, type);
+        parkingLot.put(number, v);
+        System.out.println("Vehicle parked successfully at " + v.entryTime);
+    }
+
+    // Vehicle Exit
+    static void vehicleExit() {
+        System.out.print("Enter Vehicle Number: ");
+        String number = scanner.nextLine();
+
+        if (!parkingLot.containsKey(number)) {
+            System.out.println("Vehicle not found in the parking lot.");
+            return;
+        }
+
+        Vehicle v = parkingLot.get(number);
+        LocalDateTime exitTime = LocalDateTime.now();
+
+        Duration duration = Duration.between(v.entryTime, exitTime);
+        long minutes = duration.toMinutes();
+        if (minutes == 0) minutes = 1; // Minimum charge for less than a minute
+
+        double fee = calculateFee(v.vehicleType, minutes);
+
+        System.out.println("Vehicle Number: " + v.vehicleNumber);
+        System.out.println("Vehicle Type: " + v.vehicleType);
+        System.out.println("Entry Time: " + v.entryTime);
+        System.out.println("Exit Time: " + exitTime);
+        System.out.println("Total Parked Time: " + minutes + " minutes");
+        System.out.println("Parking Fee: Rs. " + fee);
+
+        parkingLot.remove(number);
+    }
+
+    // Fee Calculation
+    static double calculateFee(String type, long minutes) {
+        double ratePerHour;
+
+        switch (type.toLowerCase()) {
+            case "car":
+                ratePerHour = 100;
+                break;
+            case "bike":
+                ratePerHour = 50;
+                break;
+            case "van":
+                ratePerHour = 120;
+                break;
+            default:
+                ratePerHour = 100;
+        }
+
+        double hours = Math.ceil(minutes / 60.0);
+        return hours * ratePerHour;
+    }
+
+    // Display Vehicles
+    static void viewParkedVehicles() {
+        if (parkingLot.isEmpty()) {
+            System.out.println("No vehicles parked currently.");
+            return;
+        }
+
+        System.out.println("Currently Parked Vehicles:");
+        for (Vehicle v : parkingLot.values()) {
+            System.out.println("Number: " + v.vehicleNumber + " | Type: " + v.vehicleType + " | Entry: " + v.entryTime);
+        }
+    }
+}
